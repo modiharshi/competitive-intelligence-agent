@@ -1,0 +1,33 @@
+# BMAD / Antigravity
+_bmad/
+_bmad-output/
+.agents/
+.claude/
+.cache/
+.tmp/
+
+# Python
+.venv/
+.pytest_cache/
+__pycache__/
+*.py[cod]
+
+# Environment
+.env
+
+# ChromaDB
+.chromadb/
+
+# SQLite
+data/*.db
+data/*.db-shm
+data/*.db-wal
+
+# macOS
+.DS_Store
+
+# IDE
+.vscode/
+.idea/
+
+.github/

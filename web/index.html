@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Competitive Intelligence Agent</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@600;700&family=Fira+Code&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+  </head>
+  <body>
+    <!-- Interactive Interrupt Banner -->
+    <div id="interrupt-banner" class="banner hidden">
+      <div class="banner-content">
+        <span class="pulse-indicator"></span>
+        <p><strong>Pipeline Interrupted (HITL):</strong> Hypotheses generated successfully. Review below and vote to configure few-shot context, then resume recommendation phase.</p>
+        <button id="resume-btn" class="btn btn-primary">Approve & Resume</button>
+      </div>
+    </div>
+
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">AI-Powered Competitive Operations Center</p>
+        <h1>Competitive Intelligence Agent</h1>
+      </div>
+      <form id="run-form" class="search">
+        <div class="search-field">
+          <label for="competitor">Target Competitor</label>
+          <select id="competitor" name="competitor">
+            <option value="HubSpot">HubSpot</option>
+            <option value="Anthropic">Anthropic</option>
+          </select>
+        </div>
+        <button type="submit" class="btn">Analyze Footprint</button>
+      </form>
+    </header>
+
+    <main class="workspace">
+      <!-- Left Column: Competitors & Footprint Discovery -->
+      <section class="panel">
+        <div class="panel-heading">
+          <h2>1. Footprint Discovery</h2>
+          <span id="footprint-status">Idle</span>
+        </div>
+        
+        <!-- Progressive Discovery Checklist -->
+        <div id="stepper" class="stepper list hidden">
+          <div class="step" id="step-dns"><span class="step-check">✓</span> Resolving competitor domain & entities</div>
+          <div class="step" id="step-t1"><span class="step-check">✓</span> Scoping Tier 1 direct channels</div>
+          <div class="step" id="step-t2"><span class="step-check">✓</span> Fetching Tier 2 SerpAPI metadata</div>
+          <div class="step" id="step-t3"><span class="step-check">○</span> Tracking Tier 3 review logs (async)</div>
+        </div>
+
+        <div id="footprints" class="list"></div>
+      </section>
+
+      <!-- Center Column: Signal Stream -->
+      <section class="panel">
+        <div class="panel-heading">
+          <h2>2. Unified Signal Stream</h2>
+          <span id="signal-count">0</span>
+        </div>
+        <div id="signals" class="list"></div>
+      </section>
+
+      <!-- Right Column: Hypotheses & Recommendations -->
+      <section class="panel primary">
+        <div class="panel-heading">
+          <h2>3. Synthesis & Recommendations</h2>
+          <span id="generated-at">Waiting</span>
+        </div>
+        
+        <div class="right-column-sections">
+          <div class="section-title">Strategic Hypotheses</div>
+          <div id="hypotheses" class="list"></div>
+          
+          <div class="section-title">Action Recommendations</div>
+          <div id="recommendations" class="list"></div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Feedback Modal Dialog -->
+    <dialog id="feedback-dialog" class="glass-modal">
+      <form method="dialog" id="feedback-form">
+        <h3>Add Strategic Guidance</h3>
+        <p>Your feedback comments will adjust the recommendation generator dynamically.</p>
+        <textarea id="feedback-comments" placeholder="e.g. Prioritize product actions over defensive campaigns." required></textarea>
+        <div class="modal-actions">
+          <button type="button" id="modal-cancel" class="btn btn-secondary">Cancel</button>
+          <button type="submit" class="btn id-submit btn-primary">Submit Vote</button>
+        </div>
+      </form>
+    </dialog>
+
+    <script src="app.js"></script>
+  </body>
+</html>

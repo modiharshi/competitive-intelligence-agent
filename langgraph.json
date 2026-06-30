@@ -1,0 +1,7 @@
+{
+  "dependencies": ["."],
+  "graphs": {
+    "agent": "./src/competitive_intelligence_agent/pipeline.py:graph"
+  },
+  "env": ".env"
+}

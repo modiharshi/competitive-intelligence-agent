@@ -1,0 +1,96 @@
+{
+  "competitors": {
+    "HubSpot": {
+      "footprint": [
+        {
+          "url": "https://www.hubspot.com/products/artificial-intelligence",
+          "source_type": "owned",
+          "confidence": 0.96,
+          "status": "monitoring",
+          "monitoring_priority": "high"
+        },
+        {
+          "url": "https://www.hubspot.com/careers/jobs",
+          "source_type": "jobs",
+          "confidence": 0.91,
+          "status": "monitoring",
+          "monitoring_priority": "high"
+        },
+        {
+          "url": "https://www.hubspot.com/company-news",
+          "source_type": "news",
+          "confidence": 0.88,
+          "status": "monitoring",
+          "monitoring_priority": "medium"
+        }
+      ],
+      "signals": [
+        {
+          "id": "sig-hubspot-ai-page",
+          "source_url": "https://www.hubspot.com/products/artificial-intelligence",
+          "category": "Product",
+          "content_diff": "Product page added AI-guided onboarding language and workflow automation examples.",
+          "timestamp": "2026-05-12T09:00:00+00:00",
+          "source_reliability": "high",
+          "impact_score": 0.86
+        },
+        {
+          "id": "sig-hubspot-ai-hiring",
+          "source_url": "https://www.hubspot.com/careers/jobs",
+          "category": "Hiring",
+          "content_diff": "Careers page shows increased openings for AI product engineers and applied ML roles.",
+          "timestamp": "2026-05-18T09:00:00+00:00",
+          "source_reliability": "medium",
+          "impact_score": 0.82
+        },
+        {
+          "id": "sig-hubspot-roadmap-news",
+          "source_url": "https://www.hubspot.com/company-news",
+          "category": "Product",
+          "content_diff": "Company news references upcoming AI assistance for customer onboarding workflows.",
+          "timestamp": "2026-05-24T09:00:00+00:00",
+          "source_reliability": "high",
+          "impact_score": 0.9
+        }
+      ]
+    },
+    "Anthropic": {
+      "footprint": [
+        {
+          "url": "https://www.anthropic.com/news",
+          "source_type": "owned",
+          "confidence": 0.95,
+          "status": "monitoring",
+          "monitoring_priority": "high"
+        },
+        {
+          "url": "https://www.anthropic.com/careers",
+          "source_type": "jobs",
+          "confidence": 0.9,
+          "status": "monitoring",
+          "monitoring_priority": "medium"
+        }
+      ],
+      "signals": [
+        {
+          "id": "sig-anthropic-enterprise",
+          "source_url": "https://www.anthropic.com/news",
+          "category": "Partnerships",
+          "content_diff": "Newsroom activity emphasizes enterprise deployment partnerships and security posture.",
+          "timestamp": "2026-05-08T09:00:00+00:00",
+          "source_reliability": "high",
+          "impact_score": 0.83
+        },
+        {
+          "id": "sig-anthropic-gov-hiring",
+          "source_url": "https://www.anthropic.com/careers",
+          "category": "Expansion",
+          "content_diff": "Careers page lists public-sector policy and deployment roles.",
+          "timestamp": "2026-05-20T09:00:00+00:00",
+          "source_reliability": "medium",
+          "impact_score": 0.78
+        }
+      ]
+    }
+  }
+}

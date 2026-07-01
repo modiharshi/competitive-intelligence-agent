@@ -89,6 +89,41 @@ class DBClient:
             );
         """)
 
+        # Seed initial competitors and sources if empty
+        cursor.execute("SELECT COUNT(*) FROM competitors")
+        if cursor.fetchone()[0] == 0:
+            try:
+                import json
+                from pathlib import Path
+                package_root = Path(__file__).resolve().parents[2]
+                demo_path = package_root / "data" / "demo_signals.json"
+                if demo_path.exists():
+                    with open(demo_path, "r", encoding="utf-8") as f:
+                        data = json.load(f)
+                    for comp_name, comp_data in data.get("competitors", {}).items():
+                        domain = f"https://www.{comp_name.lower().replace(' ', '')}.com"
+                        cursor.execute(
+                            "INSERT OR IGNORE INTO competitors (name, domain) VALUES (?, ?)",
+                            (comp_name, domain)
+                        )
+                        for src in comp_data.get("footprint", []):
+                            cursor.execute(
+                                """
+                                INSERT INTO discovered_sources (competitor_name, url, source_type, confidence, status, monitoring_priority)
+                                VALUES (?, ?, ?, ?, ?, ?)
+                                """,
+                                (
+                                    comp_name,
+                                    src["url"],
+                                    src["source_type"],
+                                    src["confidence"],
+                                    src["status"],
+                                    src.get("monitoring_priority", "medium")
+                                )
+                            )
+            except Exception:
+                pass
+
         conn.commit()
         conn.close()
 

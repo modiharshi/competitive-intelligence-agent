@@ -27,10 +27,8 @@
       <form id="run-form" class="search">
         <div class="search-field">
           <label for="competitor">Target Competitor</label>
-          <select id="competitor" name="competitor">
-            <option value="HubSpot">HubSpot</option>
-            <option value="Anthropic">Anthropic</option>
-          </select>
+          <input type="text" list="competitor-list" id="competitor" name="competitor" placeholder="Type or select competitor..." required>
+          <datalist id="competitor-list"></datalist>
         </div>
         <button type="submit" class="btn">Analyze Footprint</button>
       </form>

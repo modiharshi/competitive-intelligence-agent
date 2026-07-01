@@ -40,6 +40,21 @@ class DiffEngine:
         conn.commit()
         conn.close()
 
+    def clean_html_to_text(self, html: str) -> str:
+        import re
+        # Remove head section
+        html = re.sub(r'<head[^>]*>([\s\S]*?)</head>', ' ', html, flags=re.IGNORECASE)
+        # Remove script, style, noscript, nav, header, footer, form
+        html = re.sub(r'<(script|style|noscript|header|footer|nav|form)[^>]*>([\s\S]*?)</\1>', ' ', html, flags=re.IGNORECASE)
+        # Strip all other HTML tags
+        html = re.sub(r'<[^>]+>', ' ', html)
+        # Replace HTML entities
+        html = html.replace("&nbsp;", " ").replace("&amp;", "&").replace("&lt;", "<").replace("&gt;", ">").replace("&quot;", "\"").replace("&#039;", "'")
+        # Clean whitespaces
+        lines = [line.strip() for line in html.splitlines()]
+        cleaned = [l for l in lines if l]
+        return "\n".join(cleaned)
+
     def compare_and_diff(self, url: str, new_html: str = None) -> str:
         # Fetch new content if not provided explicitly
         current_html = new_html if new_html is not None else self._fetch_html(url)
@@ -50,9 +65,19 @@ class DiffEngine:
             self.save_snapshot(url, current_html)
             return ""
 
-        # Generate line-by-line diff
-        prev_lines = previous_html.splitlines()
-        curr_lines = current_html.splitlines()
+        # Clean HTML to plain text
+        prev_text = self.clean_html_to_text(previous_html)
+        curr_text = self.clean_html_to_text(current_html)
+
+        # Save the new snapshot for the next comparison
+        self.save_snapshot(url, current_html)
+
+        if prev_text == curr_text:
+            return ""
+
+        # Generate line-by-line diff of text
+        prev_lines = prev_text.splitlines()
+        curr_lines = curr_text.splitlines()
         
         diff_lines = list(difflib.unified_diff(
             prev_lines, 
@@ -62,10 +87,22 @@ class DiffEngine:
             lineterm=""
         ))
 
-        # Save the new snapshot for the next comparison
-        self.save_snapshot(url, current_html)
-
         if len(diff_lines) <= 2:
             return ""
 
-        return "\n".join(diff_lines)
+        # Format diff lines into a readable summary list
+        changes = []
+        for line in diff_lines:
+            if line.startswith("+") and not line.startswith("+++"):
+                val = line[1:].strip()
+                if val:
+                    changes.append(f"Added: \"{val}\"")
+            elif line.startswith("-") and not line.startswith("---"):
+                val = line[1:].strip()
+                if val:
+                    changes.append(f"Removed: \"{val}\"")
+
+        if not changes:
+            return ""
+
+        return "\n".join(changes[:15])

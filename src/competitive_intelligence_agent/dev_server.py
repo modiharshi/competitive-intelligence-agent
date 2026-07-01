@@ -10,6 +10,20 @@ from urllib.parse import unquote
 
 from .pipeline import result_to_dict, run_demo_pipeline, graph
 
+from dataclasses import asdict, is_dataclass
+
+def to_dict(obj):
+    if obj is None:
+        return None
+    if is_dataclass(obj):
+        return asdict(obj)
+    if isinstance(obj, dict):
+        return {k: to_dict(v) for k, v in obj.items()}
+    if isinstance(obj, (list, tuple)):
+        return [to_dict(v) for v in obj]
+    return obj
+
+
 ROOT = Path(__file__).resolve().parents[2]
 WEB_ROOT = ROOT / "web"
 
@@ -23,9 +37,23 @@ class DemoHandler(SimpleHTTPRequestHandler):
             self.write_json({"status": "ok"})
             return
 
+        if self.path == "/api/competitors":
+            try:
+                from .db_client import DBClient
+                db = DBClient()
+                conn = db.get_connection()
+                cursor = conn.cursor()
+                cursor.execute("SELECT name FROM competitors")
+                rows = cursor.fetchall()
+                conn.close()
+                competitors = [row["name"] for row in rows]
+                self.write_json(competitors)
+            except Exception as exc:
+                self.write_json({"error": str(exc)}, status=HTTPStatus.INTERNAL_SERVER_ERROR)
+            return
+
         if self.path.startswith("/api/graph/start"):
             from urllib.parse import urlparse, parse_qs
-            from dataclasses import asdict
             import uuid
             parsed = urlparse(self.path)
             params = parse_qs(parsed.query)
@@ -38,9 +66,9 @@ class DemoHandler(SimpleHTTPRequestHandler):
                     res = run_demo_pipeline(competitor)
                     self.write_json({
                         "competitor_name": competitor,
-                        "footprint": [asdict(f) for f in res.footprint],
-                        "signals": [asdict(s) for s in res.signals],
-                        "hypotheses": [asdict(h) for h in res.hypotheses if h.status != "suppressed"],
+                        "footprint": [to_dict(f) for f in res.footprint],
+                        "signals": [to_dict(s) for s in res.signals],
+                        "hypotheses": [to_dict(h) for h in res.hypotheses if h.status != "suppressed"],
                         "generated_at": res.generated_at,
                         "thread_id": thread_id,
                         "status": "interrupted",
@@ -57,9 +85,9 @@ class DemoHandler(SimpleHTTPRequestHandler):
                     events.append(event)
                 
                 state = graph.get_state(config)
-                footprint = [asdict(f) for f in state.values.get("footprint", [])]
-                signals = [asdict(s) for s in state.values.get("signals", [])]
-                hypotheses = [asdict(h) for h in state.values.get("hypotheses", []) if h.status != "suppressed"]
+                footprint = [to_dict(f) for f in state.values.get("footprint", [])]
+                signals = [to_dict(s) for s in state.values.get("signals", [])]
+                hypotheses = [to_dict(h) for h in state.values.get("hypotheses", []) if h.status != "suppressed"]
                 
                 from .schemas import utc_now_iso
                 self.write_json({
@@ -78,7 +106,6 @@ class DemoHandler(SimpleHTTPRequestHandler):
 
         if self.path.startswith("/api/graph/resume"):
             from urllib.parse import urlparse, parse_qs
-            from dataclasses import asdict
             parsed = urlparse(self.path)
             params = parse_qs(parsed.query)
             thread_id = params.get("thread_id", [None])[0]
@@ -91,7 +118,7 @@ class DemoHandler(SimpleHTTPRequestHandler):
                 try:
                     res = run_demo_pipeline("HubSpot")
                     self.write_json({
-                        "recommendations": [asdict(r) for r in res.recommendations],
+                        "recommendations": [to_dict(r) for r in res.recommendations],
                         "status": "completed"
                     })
                 except ValueError as exc:
@@ -103,7 +130,7 @@ class DemoHandler(SimpleHTTPRequestHandler):
                 state_before = graph.get_state(config)
                 if not state_before.next:
                     self.write_json({
-                        "recommendations": [asdict(r) for r in state_before.values.get("recommendations", [])],
+                        "recommendations": [to_dict(r) for r in state_before.values.get("recommendations", [])],
                         "status": "completed"
                     })
                     return
@@ -113,7 +140,7 @@ class DemoHandler(SimpleHTTPRequestHandler):
                     events.append(event)
                 
                 state_after = graph.get_state(config)
-                recs = [asdict(r) for r in state_after.values.get("recommendations", [])]
+                recs = [to_dict(r) for r in state_after.values.get("recommendations", [])]
                 self.write_json({
                     "recommendations": recs,
                     "status": "completed"
@@ -124,7 +151,6 @@ class DemoHandler(SimpleHTTPRequestHandler):
 
         if self.path.startswith("/api/competitors/compare"):
             from urllib.parse import urlparse, parse_qs
-            from dataclasses import asdict
             parsed = urlparse(self.path)
             params = parse_qs(parsed.query)
             comp1 = params.get("comp1", [None])[0]
@@ -140,11 +166,11 @@ class DemoHandler(SimpleHTTPRequestHandler):
                 self.write_json({
                     "comp1": {
                         "competitor_name": comp1,
-                        "hypotheses": [asdict(h) for h in res1.hypotheses if h.status != "suppressed"]
+                        "hypotheses": [to_dict(h) for h in res1.hypotheses if h.status != "suppressed"]
                     },
                     "comp2": {
                         "competitor_name": comp2,
-                        "hypotheses": [asdict(h) for h in res2.hypotheses if h.status != "suppressed"]
+                        "hypotheses": [to_dict(h) for h in res2.hypotheses if h.status != "suppressed"]
                     }
                 })
             except ValueError as exc:
@@ -154,7 +180,7 @@ class DemoHandler(SimpleHTTPRequestHandler):
         if self.path.startswith("/api/competitors/") and self.path.endswith("/run"):
             competitor_name = unquote(self.path.removeprefix("/api/competitors/").removesuffix("/run"))
             try:
-                self.write_json(result_to_dict(run_demo_pipeline(competitor_name)))
+                self.write_json(to_dict(run_demo_pipeline(competitor_name)))
             except ValueError as exc:
                 self.write_json({"error": str(exc)}, status=HTTPStatus.NOT_FOUND)
             return

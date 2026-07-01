@@ -41,5 +41,21 @@ class PipelineTests(unittest.TestCase):
             )
 
 
+    def test_pipeline_for_anthropic(self):
+        result = run_demo_pipeline("Anthropic")
+        self.assertGreaterEqual(len(result.footprint), 2)
+        self.assertGreaterEqual(len(result.signals), 1)
+
+    def test_pipeline_for_google(self):
+        result = run_demo_pipeline("Google")
+        self.assertGreaterEqual(len(result.footprint), 2)
+        self.assertGreaterEqual(len(result.signals), 1)
+
+    def test_pipeline_for_microsoft(self):
+        result = run_demo_pipeline("Microsoft")
+        self.assertGreaterEqual(len(result.footprint), 2)
+        self.assertGreaterEqual(len(result.signals), 1)
+
+
 if __name__ == "__main__":
     unittest.main()

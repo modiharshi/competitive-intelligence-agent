@@ -87,5 +87,19 @@ class TestAPIGraph(unittest.TestCase):
         self.assertIsNotNone(row)
         self.assertEqual(row["comments"], "Strategic pricing change comments")
 
+    def test_competitors_list_endpoint(self):
+        request_line = b"GET /api/competitors HTTP/1.1\r\nHost: localhost\r\n\r\n"
+        socket = MockSocket(request_line)
+        handler = DemoHandler(socket, ("127.0.0.1", 8000), None)
+        response_bytes = socket.wfile.getvalue()
+        parts = response_bytes.split(b"\r\n\r\n", 1)
+        self.assertEqual(len(parts), 2)
+        headers, body = parts
+        self.assertTrue(headers.startswith(b"HTTP/1.1 200 OK") or headers.startswith(b"HTTP/1.0 200 OK"))
+        
+        data = json.loads(body.decode("utf-8"))
+        self.assertIn("HubSpot", data)
+        self.assertIn("Anthropic", data)
+
 if __name__ == "__main__":
     unittest.main()

@@ -1,8 +1,15 @@
-"""FastAPI adapter for the MVP pipeline."""
+from dataclasses import asdict, is_dataclass
 
-from __future__ import annotations
-
-from .pipeline import result_to_dict, run_demo_pipeline
+def to_dict(obj):
+    if obj is None:
+        return None
+    if is_dataclass(obj):
+        return asdict(obj)
+    if isinstance(obj, dict):
+        return {k: to_dict(v) for k, v in obj.items()}
+    if isinstance(obj, (list, tuple)):
+        return [to_dict(v) for v in obj]
+    return obj
 
 
 def create_app():
@@ -20,11 +27,21 @@ def create_app():
 
     @app.get("/api/competitors/{competitor_name}/run")
     def run_competitor(competitor_name: str) -> dict:
-        return result_to_dict(run_demo_pipeline(competitor_name))
+        return to_dict(run_demo_pipeline(competitor_name))
+
+    @app.get("/api/competitors")
+    def list_competitors() -> list[str]:
+        from .db_client import DBClient
+        db = DBClient()
+        conn = db.get_connection()
+        cursor = conn.cursor()
+        cursor.execute("SELECT name FROM competitors")
+        rows = cursor.fetchall()
+        conn.close()
+        return [row["name"] for row in rows]
 
     @app.get("/api/competitors/compare")
     def compare_competitors(comp1: str, comp2: str) -> dict:
-        from dataclasses import asdict
         from fastapi import HTTPException
         try:
             res1 = run_demo_pipeline(comp1)
@@ -32,11 +49,11 @@ def create_app():
             return {
                 "comp1": {
                     "competitor_name": comp1,
-                    "hypotheses": [asdict(h) for h in res1.hypotheses if h.status != "suppressed"]
+                    "hypotheses": [to_dict(h) for h in res1.hypotheses if h.status != "suppressed"]
                 },
                 "comp2": {
                     "competitor_name": comp2,
-                    "hypotheses": [asdict(h) for h in res2.hypotheses if h.status != "suppressed"]
+                    "hypotheses": [to_dict(h) for h in res2.hypotheses if h.status != "suppressed"]
                 }
             }
         except ValueError as exc:
@@ -44,7 +61,6 @@ def create_app():
 
     @app.get("/api/graph/start")
     def graph_start(competitor: str = "HubSpot") -> dict:
-        from dataclasses import asdict
         from fastapi import HTTPException
         import uuid
         from .pipeline import graph, run_demo_pipeline
@@ -55,9 +71,9 @@ def create_app():
                 res = run_demo_pipeline(competitor)
                 return {
                     "competitor_name": competitor,
-                    "footprint": [asdict(f) for f in res.footprint],
-                    "signals": [asdict(s) for s in res.signals],
-                    "hypotheses": [asdict(h) for h in res.hypotheses if h.status != "suppressed"],
+                    "footprint": [to_dict(f) for f in res.footprint],
+                    "signals": [to_dict(s) for s in res.signals],
+                    "hypotheses": [to_dict(h) for h in res.hypotheses if h.status != "suppressed"],
                     "generated_at": res.generated_at,
                     "thread_id": thread_id,
                     "status": "interrupted",
@@ -73,9 +89,9 @@ def create_app():
                 events.append(event)
             
             state = graph.get_state(config)
-            footprint = [asdict(f) for f in state.values.get("footprint", [])]
-            signals = [asdict(s) for s in state.values.get("signals", [])]
-            hypotheses = [asdict(h) for h in state.values.get("hypotheses", []) if h.status != "suppressed"]
+            footprint = [to_dict(f) for f in state.values.get("footprint", [])]
+            signals = [to_dict(s) for s in state.values.get("signals", [])]
+            hypotheses = [to_dict(h) for h in state.values.get("hypotheses", []) if h.status != "suppressed"]
             
             from .schemas import utc_now_iso
             return {
@@ -93,7 +109,6 @@ def create_app():
 
     @app.get("/api/graph/resume")
     def graph_resume(thread_id: str) -> dict:
-        from dataclasses import asdict
         from fastapi import HTTPException
         from .pipeline import graph, run_demo_pipeline
 
@@ -101,7 +116,7 @@ def create_app():
             try:
                 res = run_demo_pipeline("HubSpot")
                 return {
-                    "recommendations": [asdict(r) for r in res.recommendations],
+                    "recommendations": [to_dict(r) for r in res.recommendations],
                     "status": "completed"
                 }
             except ValueError as exc:
@@ -112,7 +127,7 @@ def create_app():
             state_before = graph.get_state(config)
             if not state_before.next:
                 return {
-                    "recommendations": [asdict(r) for r in state_before.values.get("recommendations", [])],
+                    "recommendations": [to_dict(r) for r in state_before.values.get("recommendations", [])],
                     "status": "completed"
                 }
 
@@ -121,7 +136,7 @@ def create_app():
                 events.append(event)
             
             state_after = graph.get_state(config)
-            recs = [asdict(r) for r in state_after.values.get("recommendations", [])]
+            recs = [to_dict(r) for r in state_after.values.get("recommendations", [])]
             return {
                 "recommendations": recs,
                 "status": "completed"

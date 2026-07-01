@@ -58,5 +58,38 @@ class TestDiffEngine(unittest.TestCase):
         
         self.assertEqual(diff, "")
 
+    def test_html_cleaning_removes_tags_and_scripts(self):
+        engine = DiffEngine(self.db_path)
+        raw_html = """
+        <html>
+            <head><title>Test</title></head>
+            <body>
+                <script>alert("xss")</script>
+                <style>body { color: red; }</style>
+                <nav><a href="/home">Home</a></nav>
+                <form><input type="text" name="q"></form>
+                <h1>Actual Content</h1>
+            </body>
+        </html>
+        """
+        cleaned = engine.clean_html_to_text(raw_html)
+        self.assertEqual(cleaned.strip(), "Actual Content")
+
+    def test_unified_diff_headers_not_exposed(self):
+        engine = DiffEngine(self.db_path)
+        url = "https://www.google.com"
+        html_v1 = "<html><body><h1>Alpha</h1></body></html>"
+        html_v2 = "<html><body><h1>Beta</h1></body></html>"
+        
+        engine.compare_and_diff(url, html_v1)
+        diff = engine.compare_and_diff(url, html_v2)
+        
+        self.assertNotIn("+++", diff)
+        self.assertNotIn("---", diff)
+        self.assertNotIn("@@", diff)
+        self.assertIn("Added: \"Beta\"", diff)
+        self.assertIn("Removed: \"Alpha\"", diff)
+
+
 if __name__ == "__main__":
     unittest.main()

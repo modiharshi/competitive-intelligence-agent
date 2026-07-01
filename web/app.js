@@ -22,16 +22,26 @@ let pendingVoteData = null;
 // Simulated delay helper for progressive discovery
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
+function escapeHtml(text) {
+  if (text === null || text === undefined) return "";
+  return String(text)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
 function renderFootprint(sources) {
   footprintsEl.innerHTML = sources
     .map((source) => `
       <article class="item">
-        <a class="item-source-link" href="${source.url}" target="_blank">${source.url}</a>
+        <a class="item-source-link" href="${escapeHtml(source.url)}" target="_blank">${escapeHtml(source.url)}</a>
         <div class="meta">
-          <span class="pill">${source.source_type}</span>
+          <span class="pill">${escapeHtml(source.source_type)}</span>
           <span class="pill success">Confidence ${Math.round(source.confidence * 100)}%</span>
-          <span class="pill">${source.status}</span>
-          <span class="pill">${source.monitoring_priority} priority</span>
+          <span class="pill">${escapeHtml(source.status)}</span>
+          <span class="pill">${escapeHtml(source.monitoring_priority)} priority</span>
         </div>
       </article>
     `)
@@ -43,13 +53,13 @@ function renderSignals(signals) {
   signalsEl.innerHTML = signals
     .map((signal) => `
       <article class="item">
-        <h3>${signal.category}</h3>
-        <p>${signal.content_diff}</p>
-        <a class="item-source-link" href="${signal.source_url}" target="_blank">${signal.source_url}</a>
+        <h3>${escapeHtml(signal.category)}</h3>
+        <p>${escapeHtml(signal.content_diff).replace(/\n/g, '<br>')}</p>
+        <a class="item-source-link" href="${escapeHtml(signal.source_url)}" target="_blank">${escapeHtml(signal.source_url)}</a>
         <div class="meta">
-          <span class="pill">${signal.source_reliability} reliability</span>
+          <span class="pill">${escapeHtml(signal.source_reliability)} reliability</span>
           <span class="pill">impact ${Math.round(signal.impact_score * 100)}%</span>
-          <span class="pill">${new Date(signal.timestamp).toLocaleDateString()}</span>
+          <span class="pill">${escapeHtml(new Date(signal.timestamp).toLocaleDateString())}</span>
         </div>
       </article>
     `)
@@ -57,24 +67,33 @@ function renderSignals(signals) {
 }
 
 function renderHypotheses(hypotheses) {
+  if (!hypotheses || hypotheses.length === 0) {
+    hypothesesEl.innerHTML = `
+      <article class="item empty-state">
+        <p>No active hypotheses. Tap "Analyze Footprint" to crawl, or verify signals. Low-confidence hypotheses (&lt; 70%) are suppressed.</p>
+      </article>
+    `;
+    return;
+  }
+
   hypothesesEl.innerHTML = hypotheses
     .map((hypothesis) => {
       const isHighRisk = hypothesis.confidence_score >= 0.85;
       const warningPill = isHighRisk ? '<span class="pill high-threat">High Warning Score</span>' : '';
       return `
-        <article class="item" id="card-${hypothesis.id}">
-          <h3>${hypothesis.theme}</h3>
-          <p>${hypothesis.summary}</p>
+        <article class="item" id="card-${escapeHtml(hypothesis.id)}">
+          <h3>${escapeHtml(hypothesis.theme)}</h3>
+          <p>${escapeHtml(hypothesis.summary)}</p>
           <div class="meta">
             <span class="pill">Confidence <strong class="confidence">${Math.round(hypothesis.confidence_score * 100)}%</strong></span>
-            <span class="pill">${hypothesis.time_horizon}</span>
+            <span class="pill">${escapeHtml(hypothesis.time_horizon)}</span>
             ${warningPill}
           </div>
           <div class="voting-actions">
-            <button class="vote-btn thumbs-up" onclick="openFeedback('${hypothesis.competitor_name}', '${hypothesis.id}', 'thumbs_up')">
+            <button class="vote-btn thumbs-up" onclick="openFeedback('${escapeHtml(hypothesis.competitor_name)}', '${escapeHtml(hypothesis.id)}', 'thumbs_up')">
               👍 Approve
             </button>
-            <button class="vote-btn thumbs-down" onclick="openFeedback('${hypothesis.competitor_name}', '${hypothesis.id}', 'thumbs_down')">
+            <button class="vote-btn thumbs-down" onclick="openFeedback('${escapeHtml(hypothesis.competitor_name)}', '${escapeHtml(hypothesis.id)}', 'thumbs_down')">
               👎 Reject
             </button>
           </div>
@@ -86,18 +105,27 @@ function renderHypotheses(hypotheses) {
 
 function renderRecommendations(recommendations) {
   const countEl = document.querySelector("#recommendation-count");
-  if (countEl) countEl.textContent = String(recommendations.length);
+  if (countEl) countEl.textContent = recommendations ? String(recommendations.length) : "0";
   
+  if (!recommendations || recommendations.length === 0) {
+    recommendationsEl.innerHTML = `
+      <article class="item empty-state">
+        <p>No action recommendations available. Recommendations require an active, approved hypothesis.</p>
+      </article>
+    `;
+    return;
+  }
+
   recommendationsEl.innerHTML = recommendations
     .map((recommendation) => `
       <article class="item">
-        <h3>${recommendation.category}</h3>
-        <p><strong>Action:</strong> ${recommendation.recommended_action}</p>
-        <p><strong>Reasoning:</strong> ${recommendation.reasoning}</p>
+        <h3>${escapeHtml(recommendation.category)}</h3>
+        <p><strong>Action:</strong> ${escapeHtml(recommendation.recommended_action)}</p>
+        <p><strong>Reasoning:</strong> ${escapeHtml(recommendation.reasoning)}</p>
         <div class="meta">
-          <span class="pill">Priority <strong class="priority">${recommendation.priority}</strong></span>
-          <span class="pill">Effort: ${recommendation.effort}</span>
-          <span class="pill">${recommendation.strategic_posture}</span>
+          <span class="pill">Priority <strong class="priority">${escapeHtml(recommendation.priority)}</strong></span>
+          <span class="pill">Effort: ${escapeHtml(recommendation.effort)}</span>
+          <span class="pill">${escapeHtml(recommendation.strategic_posture)}</span>
         </div>
       </article>
     `)
@@ -162,6 +190,8 @@ form.addEventListener("submit", async (event) => {
     if (data.status === "interrupted") {
       interruptBannerEl.classList.remove("hidden");
     }
+    
+    loadCompetitors();
   } catch (error) {
     generatedAtEl.textContent = "Error";
     signalsEl.innerHTML = `<article class="item"><p>${error.message}</p></article>`;
@@ -242,5 +272,26 @@ feedbackForm.addEventListener("submit", async (event) => {
   }
 });
 
+async function loadCompetitors() {
+  try {
+    const res = await fetch("/api/competitors");
+    if (!res.ok) throw new Error("Could not load competitors");
+    const competitors = await res.json();
+    const datalist = document.querySelector("#competitor-list");
+    if (datalist) {
+      datalist.innerHTML = competitors
+        .map(comp => `<option value="${comp}"></option>`)
+        .join("");
+    }
+    if (!competitorInput.value && competitors.length > 0) {
+      competitorInput.value = competitors[0];
+    }
+  } catch (error) {
+    console.error("Error loading competitors:", error);
+  }
+}
+
 // Run default onload
-form.dispatchEvent(new Event("submit"));
+loadCompetitors().then(() => {
+  form.dispatchEvent(new Event("submit"));
+});

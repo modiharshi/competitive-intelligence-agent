@@ -1,16 +1,4 @@
----
-stepsCompleted: [1, 2, 3, 4, 5, 6, 7, 8]
-inputDocuments:
-  - _bmad-output/planning-artifacts/briefs/brief-competitive-intelligence-agent-2026-06-21/brief.md
-  - _bmad-output/planning-artifacts/prds/prd-competitive-intelligence-agent-2026-06-21/prd.md
-workflowType: 'architecture'
-project_name: 'competitive-intelligence-agent'
-user_name: 'Harshi'
-date: '2026-06-21'
-lastStep: 8
-status: 'complete'
-completedAt: '2026-06-23'
----
+
 
 # Architecture Decision Document: Competitive Intelligence Agent
 

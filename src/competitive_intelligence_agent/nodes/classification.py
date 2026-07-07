@@ -43,15 +43,33 @@ class ClassificationNode:
     @retry_decorator
     def _call_llm_classify(self, content_diff: str) -> SignalCategory:
 
-        # Check if environment keys are missing or mock is enforced
-        openai_key = os.environ.get("OPENAI_API_KEY")
-        gemini_key = os.environ.get("GEMINI_API_KEY")
-        
-        if not self.use_mock_llm and (openai_key or gemini_key):
-            # Real LLM API call details here
-            # Under sandbox, if rate limits (429) happen, we raise LLMTransientError to trigger retries
-            pass
+        # Try to use Ollama/Gemma for classification
+        try:
+            from ..ollama_client import call_ollama
+            import json
             
+            system_prompt = (
+                "You are an expert competitive intelligence agent. "
+                "Classify the given competitor signal change description into exactly one of these categories:\n"
+                "Product, Pricing, Hiring, Marketing, Partnerships, Funding, Expansion, Leadership, Customer Sentiment, Technical.\n"
+                "Respond in JSON format with a single key 'category' containing the exact category name."
+            )
+            messages = [
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": f"Signal Description:\n{content_diff}"}
+            ]
+            res = call_ollama(messages, response_json=True, timeout=5.0)
+            if res:
+                data = json.loads(res)
+                cat = data.get("category")
+                if cat in [
+                    "Product", "Pricing", "Hiring", "Marketing", "Partnerships",
+                    "Funding", "Expansion", "Leadership", "Customer Sentiment", "Technical"
+                ]:
+                    return cat
+        except Exception:
+            pass
+
         # Robust keyword heuristic classification fallback for offline test execution
         content_lower = content_diff.lower()
         if "price" in content_lower or "pricing" in content_lower or "cost" in content_lower:
@@ -64,14 +82,16 @@ class ClassificationNode:
             return "Marketing"
         elif "partner" in content_lower or "partnership" in content_lower:
             return "Partnerships"
-        elif "funding" in content_lower or "raised" in content_lower or "million" in content_lower:
+        elif "funding" in content_lower or "raised" in content_lower or "million" in content_lower or "rating" in content_lower or "credit" in content_lower:
             return "Funding"
-        elif "expansion" in content_lower or "regional" in content_lower or "opened" in content_lower:
+        elif "expansion" in content_lower or "regional" in content_lower or "opened" in content_lower or "reuters" in content_lower or "acquire" in content_lower or "acquisition" in content_lower:
             return "Expansion"
-        elif "ceo" in content_lower or "hire" in content_lower or "leadership" in content_lower or "vp" in content_lower:
+        elif "ceo" in content_lower or "hire" in content_lower or "leadership" in content_lower or "vp" in content_lower or "lawsuit" in content_lower or "litigation" in content_lower or "court" in content_lower or "legal" in content_lower or "interview" in content_lower or "bloomberg" in content_lower or "cnbc" in content_lower or "wsj" in content_lower:
             return "Leadership"
+        elif "api" in content_lower or "developer" in content_lower or "sdk" in content_lower or "github" in content_lower or "changelog" in content_lower or "outage" in content_lower or "rca" in content_lower or "postmortem" in content_lower or "status" in content_lower or "tech talk" in content_lower or "youtube" in content_lower or "onion" in content_lower or "darkweb" in content_lower or "leak" in content_lower or "ransomware" in content_lower:
+            return "Technical"
         elif "community" in content_lower or "forum" in content_lower or "reddit" in content_lower:
-            return "Community Activity"
+            return "Technical"
         else:
             return "Product"
 

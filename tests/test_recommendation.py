@@ -29,7 +29,7 @@ class TestRecommendationNode(unittest.TestCase):
         cursor = conn.cursor()
         
         # 1. Insert competitor metadata to satisfy foreign key constraint if any
-        cursor.execute("INSERT INTO competitors (name, domain) VALUES ('HubSpot', 'https://hubspot.com')")
+        cursor.execute("INSERT OR IGNORE INTO competitors (name, domain) VALUES ('HubSpot', 'https://hubspot.com')")
         
         # 2. Insert thumbs_up feedback (should be injected)
         cursor.execute("""

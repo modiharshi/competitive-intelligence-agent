@@ -12,7 +12,6 @@ from datetime import UTC, datetime
 from typing import Literal
 
 SignalCategory = Literal[
-
     "Product",
     "Pricing",
     "Hiring",
@@ -23,6 +22,7 @@ SignalCategory = Literal[
     "Leadership",
     "Customer Sentiment",
     "Community Activity",
+    "Technical",
 ]
 
 SOURCE_TYPES = {"owned", "social", "customer", "news", "jobs", "community"}
@@ -37,6 +37,7 @@ SIGNAL_CATEGORIES = {
     "Leadership",
     "Customer Sentiment",
     "Community Activity",
+    "Technical",
 }
 RELATION_TYPES = {"precedes", "amplifies", "contradicts", "supports", "causes"}
 RESPONSE_CATEGORIES = {
@@ -172,4 +173,85 @@ class PipelineResult:
     hypotheses: list[StrategicHypothesis]
     recommendations: list[ActionRecommendation]
     generated_at: str = field(default_factory=utc_now_iso)
+    executive_summary: str = ""
+    intelligence_pillars: dict = field(default_factory=dict)
+    strategic_risks: list[str] = field(default_factory=list)
+    strategic_opportunities: list[str] = field(default_factory=list)
+    watch_list: list[str] = field(default_factory=list)
 
+
+# Pydantic Schemas for V2 Pipeline
+try:
+    from pydantic import BaseModel, Field
+    from typing import List, Dict, Optional
+
+    class V2FootprintSource(BaseModel):
+        url: str
+        source_type: Literal['website', 'rss', 'careers', 'changelog', 'documentation', 'api_docs', 'newsroom']
+        confidence_score: float
+        monitoring_priority: Literal['high', 'medium', 'low']
+
+    class V2RawEvent(BaseModel):
+        id: str
+        source_url: str
+        content_hash: str
+        raw_content: str
+        fetched_timestamp: str
+
+    class V2NormalizedSignal(BaseModel):
+        id: str
+        raw_event_id: str
+        title: str
+        summary: str
+        key_changes: str
+        url: str
+        timestamp: str
+
+    class V2ClassifiedSignal(BaseModel):
+        id: str
+        normalized_signal_id: str
+        category: Literal['Product', 'Pricing', 'Hiring', 'Marketing', 'Partnerships', 'Funding', 'Expansion', 'Leadership', 'Customer Sentiment', 'Technical']
+        impact_score: float
+        confidence_score: float
+
+    class V2BusinessTheme(BaseModel):
+        theme_id: str
+        theme_name: str
+        confidence_score: float
+        contributing_signal_ids: List[str]
+
+    class V2CorrelationCluster(BaseModel):
+        id: str
+        theme_id: str
+        signal_ids: List[str]
+        earliest_timestamp: str
+        latest_timestamp: str
+        validation_status: Literal['passed', 'failed']
+
+    class V2Hypothesis(BaseModel):
+        id: str
+        theme_id: str
+        summary: str
+        confidence_score: float
+        time_horizon: Literal['Short-Term', 'Mid-Term', 'Long-Term']
+        supporting_signals: List[str]
+        sources: List[str]
+        status: Literal['active', 'suppressed', 'insufficient_evidence']
+
+    class V2Recommendation(BaseModel):
+        id: str
+        hypothesis_id: str
+        recommended_action: str
+        reasoning: str
+        priority: Literal['High', 'Medium', 'Low']
+        effort: Literal['High', 'Medium', 'Low']
+        strategic_posture: Literal['Offensive', 'Defensive', 'Opportunistic']
+        evidence_ids: List[str]
+
+    class V2HITLFeedback(BaseModel):
+        hypothesis_id: str
+        vote: Literal['thumbs_up', 'thumbs_down']
+        comments: Optional[str] = ""
+        timestamp: str
+except ImportError:
+    pass

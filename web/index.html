@@ -3,95 +3,660 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Competitive Intelligence Agent</title>
+    <title>Competitive Intelligence Platform</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@600;700&family=Fira+Code&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css?v=5">
   </head>
   <body>
-    <!-- Interactive Interrupt Banner -->
+    <!-- Interactive Interrupt Banner (HITL Feedback) -->
     <div id="interrupt-banner" class="banner hidden">
       <div class="banner-content">
-        <span class="pulse-indicator"></span>
-        <p><strong>Pipeline Interrupted (HITL):</strong> Hypotheses generated successfully. Review below and vote to configure few-shot context, then resume recommendation phase.</p>
-        <button id="resume-btn" class="btn btn-primary">Approve & Resume</button>
+        <div class="banner-message">
+          <span class="pulse-indicator"></span>
+          <p><strong>Action Needed:</strong> Strategic insights compiled. Please review recommended actions below and submit feedback or resume to proceed.</p>
+        </div>
+        <button id="resume-btn" class="btn btn-primary">Approve & Resume Pipeline</button>
       </div>
     </div>
 
-    <header class="topbar">
-      <div>
-        <p class="eyebrow">AI-Powered Competitive Operations Center</p>
-        <h1>Competitive Intelligence Agent</h1>
+    <!-- 1. LANDING SCREEN -->
+    <section id="landing-hero" class="hero-section">
+      <!-- Background Waves -->
+      <div class="topo-bg-left">
+        <svg viewBox="0 0 400 400" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M-100 300 C50 350, 150 200, 300 250 C400 280, 420 380, 500 400" stroke="#EFEBE4" stroke-width="1.5"/>
+          <path d="M-100 260 C80 320, 120 160, 280 220 C380 250, 400 340, 500 370" stroke="#EFEBE4" stroke-width="1"/>
+          <path d="M-100 220 C100 290, 90 120, 260 190 C360 220, 380 300, 500 340" stroke="#EFEBE4" stroke-width="1.5"/>
+          <path d="M-100 180 C120 260, 60 80, 240 160 C340 190, 360 260, 500 310" stroke="#EFEBE4" stroke-width="1"/>
+          <path d="M-100 140 C140 230, 30 40, 220 130 C320 160, 340 220, 500 280" stroke="#EFEBE4" stroke-width="1.2"/>
+        </svg>
       </div>
-      <form id="run-form" class="search">
-        <div class="search-field">
-          <label for="competitor">Target Competitor</label>
-          <input type="text" list="competitor-list" id="competitor" name="competitor" placeholder="Type or select competitor..." required>
-          <datalist id="competitor-list"></datalist>
-        </div>
-        <button type="submit" class="btn">Analyze Footprint</button>
-      </form>
-    </header>
+      <div class="topo-bg-right">
+        <svg viewBox="0 0 400 400" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M0 320 C100 350, 150 220, 280 260 C380 290, 420 180, 500 210" stroke="#EFEBE4" stroke-width="1.5"/>
+          <path d="M50 350 C120 370, 180 250, 300 280 C390 300, 430 210, 500 230" stroke="#EFEBE4" stroke-width="1"/>
+          <path d="M-50 290 C50 320, 120 190, 260 240 C360 270, 400 150, 500 180" stroke="#EFEBE4" stroke-width="1.5"/>
+          <path d="M-100 260 C0 290, 90 160, 240 220 C340 250, 380 120, 500 150" stroke="#EFEBE4" stroke-width="1.2"/>
+        </svg>
+      </div>
 
-    <main class="workspace">
-      <!-- Left Column: Competitors & Footprint Discovery -->
-      <section class="panel">
-        <div class="panel-heading">
-          <h2>1. Footprint Discovery</h2>
-          <span id="footprint-status">Idle</span>
-        </div>
+      <header class="hero-top">
+        <span class="logo-mark">CIA <span class="version">v2.2</span></span>
+        <button class="btn btn-settings">
+          <svg class="icon-settings" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="3"></circle>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+          </svg>
+          Settings
+        </button>
+      </header>
+
+      <div class="hero-content">
+        <h1 class="hero-title">Competitive Intelligence</h1>
+        <p class="hero-tagline"><strong>Know before</strong> the market does.</p>
+        <p class="hero-subtitle">
+          Every competitor leaves signals. We connect them.<br>
+          Turn public competitor signals into strategic advantage through <span class="highlight-green">seven specialized AI agents.</span>
+        </p>
         
-        <!-- Progressive Discovery Checklist -->
-        <div id="stepper" class="stepper list hidden">
-          <div class="step" id="step-dns"><span class="step-check">✓</span> Resolving competitor domain & entities</div>
-          <div class="step" id="step-t1"><span class="step-check">✓</span> Scoping Tier 1 direct channels</div>
-          <div class="step" id="step-t2"><span class="step-check">✓</span> Fetching Tier 2 SerpAPI metadata</div>
-          <div class="step" id="step-t3"><span class="step-check">○</span> Tracking Tier 3 review logs (async)</div>
+        <form id="landing-form" class="hero-search">
+          <div class="search-box">
+            <svg class="search-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+            <input type="text" list="competitor-list-landing" id="competitor-landing" placeholder="Enter competitor or company name" required>
+            <datalist id="competitor-list-landing"></datalist>
+            <button type="submit" class="btn btn-primary">
+              Analyze Competitor 
+              <svg class="arrow-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="7" y1="17" x2="17" y2="7"></line>
+                <polyline points="7 7 17 7 17 17"></polyline>
+              </svg>
+            </button>
+          </div>
+        </form>
+
+        <div class="divider-title">
+          <span>POWERED BY 7 SPECIALIZED AI AGENTS</span>
         </div>
 
-        <div id="footprints" class="list"></div>
-      </section>
-
-      <!-- Center Column: Signal Stream -->
-      <section class="panel">
-        <div class="panel-heading">
-          <h2>2. Unified Signal Stream</h2>
-          <span id="signal-count">0</span>
-        </div>
-        <div id="signals" class="list"></div>
-      </section>
-
-      <!-- Right Column: Hypotheses & Recommendations -->
-      <section class="panel primary">
-        <div class="panel-heading">
-          <h2>3. Synthesis & Recommendations</h2>
-          <span id="generated-at">Waiting</span>
-        </div>
-        
-        <div class="right-column-sections">
-          <div class="section-title">Strategic Hypotheses</div>
-          <div id="hypotheses" class="list"></div>
+        <!-- 7 Agents Timeline -->
+        <div class="timeline-container-horizontal">
+          <div class="timeline-line"></div>
           
-          <div class="section-title">Action Recommendations</div>
-          <div id="recommendations" class="list"></div>
+          <div class="timeline-row">
+            <!-- Agent 1 -->
+            <div class="timeline-step">
+              <div class="timeline-circle">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"></polygon>
+                </svg>
+              </div>
+              <div class="timeline-meta">
+                <span class="timeline-num">01</span>
+                <span class="timeline-name">Discovery</span>
+                <span class="timeline-desc">Finds sources & footprints</span>
+              </div>
+            </div>
+
+            <!-- Agent 2 -->
+            <div class="timeline-step">
+              <div class="timeline-circle">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M12 2a10 10 0 0 1 10 10c0 2.2-.8 4.2-2.1 5.7L18.4 16A8 8 0 0 0 6.6 6.6l-.3-.3C7.8 5 9.8 4.2 12 4.2V2z"></path>
+                  <circle cx="12" cy="12" r="2"></circle>
+                  <path d="M16.24 7.76a6 6 0 0 1 0 8.49m-8.48-.01a6 6 0 0 1 0-8.49"></path>
+                  <path d="M12 2v4"></path>
+                  <path d="M12 18v4"></path>
+                  <path d="M4.93 4.93l2.83 2.83"></path>
+                  <path d="M16.24 16.24l2.83 2.83"></path>
+                  <path d="M2 12h4"></path>
+                  <path d="M18 12h4"></path>
+                  <path d="M4.93 19.07l2.83-2.83"></path>
+                  <path d="M16.24 7.76l2.83-2.83"></path>
+                </svg>
+              </div>
+              <div class="timeline-meta">
+                <span class="timeline-num">02</span>
+                <span class="timeline-name">Monitoring</span>
+                <span class="timeline-desc">Tracks signals in real-time</span>
+              </div>
+            </div>
+
+            <!-- Agent 3 -->
+            <div class="timeline-step">
+              <div class="timeline-circle">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+                </svg>
+              </div>
+              <div class="timeline-meta">
+                <span class="timeline-num">03</span>
+                <span class="timeline-name">Classification</span>
+                <span class="timeline-desc">Categorizes & filters noise</span>
+              </div>
+            </div>
+
+            <!-- Agent 4 -->
+            <div class="timeline-step">
+              <div class="timeline-circle">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M4.5 16.5c-1.5 1.5-2.5.5-2.5-.5V8c0-2 2-3 4-3h3.5"></path>
+                  <path d="M19.5 7.5c1.5-1.5 2.5-.5 2.5.5v8c0 2-2 3-4 3h-3.5"></path>
+                  <circle cx="12" cy="12" r="3"></circle>
+                  <line x1="12" y1="2" x2="12" y2="9"></line>
+                  <line x1="12" y1="15" x2="12" y2="22"></line>
+                </svg>
+              </div>
+              <div class="timeline-meta">
+                <span class="timeline-num">04</span>
+                <span class="timeline-name">Intelligence</span>
+                <span class="timeline-desc">Connects dots & builds insights</span>
+              </div>
+            </div>
+
+            <!-- Agent 5 -->
+            <div class="timeline-step">
+              <div class="timeline-circle">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M9 21h6"></path>
+                  <path d="M9 17h6"></path>
+                  <path d="M12 2a7 7 0 0 0-7 7c0 2.38 1.19 4.47 3 5.74V17c0 .55.45 1 1 1h6c.55 0 1-.45 1-1v-2.26c1.81-1.27 3-3.36 3-5.74a7 7 0 0 0-7-7z"></path>
+                </svg>
+              </div>
+              <div class="timeline-meta">
+                <span class="timeline-num">05</span>
+                <span class="timeline-name">Hypothesis</span>
+                <span class="timeline-desc">Generates strategic hypotheses</span>
+              </div>
+            </div>
+
+            <!-- Agent 6 -->
+            <div class="timeline-step">
+              <div class="timeline-circle">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <circle cx="12" cy="12" r="6"></circle>
+                  <circle cx="12" cy="12" r="2"></circle>
+                </svg>
+              </div>
+              <div class="timeline-meta">
+                <span class="timeline-num">06</span>
+                <span class="timeline-name">Recommendation</span>
+                <span class="timeline-desc">Suggests actions & priorities</span>
+              </div>
+            </div>
+
+            <!-- Agent 7 -->
+            <div class="timeline-step">
+              <div class="timeline-circle">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                  <polyline points="14 2 14 8 20 8"></polyline>
+                  <line x1="16" y1="13" x2="8" y2="13"></line>
+                  <line x1="16" y1="17" x2="8" y2="17"></line>
+                  <polyline points="10 9 9 9 8 9"></polyline>
+                </svg>
+              </div>
+              <div class="timeline-meta">
+                <span class="timeline-num">07</span>
+                <span class="timeline-name">Reporting</span>
+                <span class="timeline-desc">Delivers executive briefings</span>
+              </div>
+            </div>
+          </div>
         </div>
-      </section>
-    </main>
+      </div>
+
+      <!-- Features Card (Evidence-Based, Human-in-the-Loop, Private & Secure, Real-Time) -->
+      <div class="features-card-wrapper">
+        <div class="features-card">
+          <div class="feature-col">
+            <div class="feature-icon-wrapper">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                <polyline points="9 11 11 13 15 9"></polyline>
+              </svg>
+            </div>
+            <div class="feature-meta">
+              <strong>Evidence-Based</strong>
+              <span>Every insight is source-backed</span>
+            </div>
+          </div>
+          
+          <div class="feature-divider"></div>
+
+          <div class="feature-col">
+            <div class="feature-icon-wrapper">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                <circle cx="9" cy="7" r="4"></circle>
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+              </svg>
+            </div>
+            <div class="feature-meta">
+              <strong>Human-in-the-Loop</strong>
+              <span>Review. Approve. Refine.</span>
+            </div>
+          </div>
+
+          <div class="feature-divider"></div>
+
+          <div class="feature-col">
+            <div class="feature-icon-wrapper">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+              </svg>
+            </div>
+            <div class="feature-meta">
+              <strong>Private & Secure</strong>
+              <span>Your data stays private</span>
+            </div>
+          </div>
+
+          <div class="feature-divider"></div>
+
+          <div class="feature-col">
+            <div class="feature-icon-wrapper">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <polyline points="12 6 12 12 16 14"></polyline>
+              </svg>
+            </div>
+            <div class="feature-meta">
+              <strong>Real-Time Intelligence</strong>
+              <span>Fresh signals, faster decisions</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2. OPERATIONS DASHBOARD CONTAINER -->
+    <div id="dashboard" class="dashboard-container hidden">
+      <header class="topbar">
+        <div class="topbar-left">
+          <span class="logo-mark" onclick="showLanding()">CIA <span class="version">v2.2</span></span>
+        </div>
+        <form id="run-form" class="search">
+          <div class="search-field">
+            <span class="search-icon">🔍</span>
+            <input type="text" list="competitor-list" id="competitor" placeholder="Search competitor name..." required>
+            <datalist id="competitor-list"></datalist>
+          </div>
+          <button type="submit" class="btn btn-primary">Analyze</button>
+        </form>
+      </header>
+
+      <!-- Main Narrative Column -->
+      <main class="dashboard-narrative">
+        
+        <!-- SECTION 1: EXECUTIVE SUMMARY HERO -->
+        <section class="narrative-section executive-summary-hero">
+          <div class="section-meta-top">
+            <span class="meta-label">Strategic Report Overview</span>
+            <span id="generated-at" class="meta-time">Waiting</span>
+          </div>
+          <div id="brief-body">
+            <div class="empty-state">
+              <p>Enter a competitor name to synthesize the Executive Strategic Briefing.</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- Hidden elements for backward compatibility -->
+        <span id="tab-signal-count" style="display:none">0</span>
+        <span id="signal-count" style="display:none">0</span>
+
+        <!-- SECTION 2: KEY STRATEGIC INSIGHTS -->
+        <section class="narrative-section">
+          <div class="section-header">
+            <h3>Key Strategic Insights</h3>
+            <p class="section-desc">High-impact findings compiled through temporal signal correlation.</p>
+          </div>
+          <div id="hypotheses" class="key-findings-list">
+            <div class="empty-state">
+              <p>No findings active. Awaiting strategic interpretation.</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- SECTION 3: RECENT DEVELOPMENTS -->
+        <section class="narrative-section">
+          <div class="section-header">
+            <h3>Recent Developments</h3>
+            <p class="section-desc">Timeline of categorized competitive movements, sorted by strategic importance.</p>
+          </div>
+          <div id="signals" class="intelligence-timeline-feed">
+            <div class="empty-state">
+              <p>No recent developments loaded. Start an analysis to gather signals.</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- SECTION 4: THE SIX DOMAIN INTELLIGENCE PILLARS -->
+        <section class="narrative-section">
+          <div class="section-header">
+            <h3>Domain Intelligence Pillars</h3>
+            <p class="section-desc">Strategic assessments compiled across six key competitor communication streams.</p>
+          </div>
+          <div class="pillars-grid-container">
+            <!-- Company Activity Card -->
+            <div class="pillar-card">
+              <div class="pillar-card-header">
+                <span class="pillar-icon">🏢</span>
+                <h4>Company Activity</h4>
+              </div>
+              <p class="pillar-text" id="pillar-company">Awaiting signal correlation...</p>
+            </div>
+
+            <!-- Hiring Intelligence Card -->
+            <div class="pillar-card">
+              <div class="pillar-card-header">
+                <span class="pillar-icon">👔</span>
+                <h4>Hiring Intelligence</h4>
+              </div>
+              <p class="pillar-text" id="pillar-hiring">Awaiting careers analysis...</p>
+            </div>
+
+            <!-- Product Intelligence Card -->
+            <div class="pillar-card">
+              <div class="pillar-card-header">
+                <span class="pillar-icon">⚙️</span>
+                <h4>Product Intelligence</h4>
+              </div>
+              <p class="pillar-text" id="pillar-product">Awaiting documentation audit...</p>
+            </div>
+
+            <!-- Market Intelligence Card -->
+            <div class="pillar-card">
+              <div class="pillar-card-header">
+                <span class="pillar-icon">📊</span>
+                <h4>Market Activity</h4>
+              </div>
+              <p class="pillar-text" id="pillar-market">Awaiting positioning check...</p>
+            </div>
+
+            <!-- Customer Intelligence Card -->
+            <div class="pillar-card">
+              <div class="pillar-card-header">
+                <span class="pillar-icon">🗣️</span>
+                <h4>Customer Sentiment</h4>
+              </div>
+              <div class="pillar-subblock" id="pillar-customer">
+                <p class="pillar-text">Awaiting community review compilation...</p>
+              </div>
+            </div>
+
+            <!-- Social Intelligence Card -->
+            <div class="pillar-card">
+              <div class="pillar-card-header">
+                <span class="pillar-icon">📡</span>
+                <h4>Social & Tech Pulse</h4>
+              </div>
+              <p class="pillar-text" id="pillar-social">Awaiting social engagement metrics...</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- SECTION 5: STRATEGIC ASSESSMENT (RISKS & OPPORTUNITIES) -->
+        <section class="narrative-section assessment-section">
+          <div class="assessment-container-grid">
+            <!-- Risks Card -->
+            <div class="assessment-panel risks-panel">
+              <div class="section-header">
+                <h3>Strategic Risks</h3>
+                <p class="section-desc">Identified competitive and operational threats.</p>
+              </div>
+              <ul class="assessment-list" id="strategic-risks-list">
+                <li>Awaiting threat audit...</li>
+              </ul>
+            </div>
+
+            <!-- Opportunities Card -->
+            <div class="assessment-panel opportunities-panel">
+              <div class="section-header">
+                <h3>Strategic Opportunities</h3>
+                <p class="section-desc">Weaknesses and competitive openings to exploit.</p>
+              </div>
+              <ul class="assessment-list" id="strategic-opportunities-list">
+                <li>Awaiting opportunity audit...</li>
+              </ul>
+            </div>
+          </div>
+        </section>
+
+        <!-- SECTION 6: RECOMMENDED ACTIONS -->
+        <section class="narrative-section">
+          <div class="section-header">
+            <h3>Recommended Actions</h3>
+            <p class="section-desc">Targeted strategic maneuvers backed by correlated signals.</p>
+          </div>
+          <div id="recommendations" class="recommended-actions-grid">
+            <div class="empty-state">
+              <p>No actions proposed. Approved insights are required to compile recommendations.</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- SECTION 7: WATCH LIST (PREDICTED NEXT MOVES) -->
+        <section class="narrative-section">
+          <div class="section-header">
+            <h3>Watch List</h3>
+            <p class="section-desc">Expected future competitive maneuvers predicted by our early-warning engine.</p>
+          </div>
+          <div class="watchlist-card">
+            <ul class="watchlist-grid" id="watch-list-items">
+              <li>Awaiting predictions...</li>
+            </ul>
+          </div>
+        </section>
+
+        <!-- SECTION 8: MONITORING SOURCES -->
+        <section class="narrative-section">
+          <div class="section-header">
+            <h3>Monitoring Sources</h3>
+            <p class="section-desc">Real-time status of monitored competitor endpoints and communication channels.</p>
+          </div>
+          <div class="monitoring-sources-card">
+            <div class="monitoring-sources-meta">
+              <span>Telemetry Status: <strong id="footprint-status">Idle</strong></span>
+            </div>
+            
+            <div id="stepper" class="stepper list hidden">
+              <div class="step" id="step-dns"><span class="step-check">○</span> DNS Domain entity resolution</div>
+              <div class="step" id="step-t1"><span class="step-check">○</span> Tier 1 direct channel scrape</div>
+              <div class="step" id="step-t2"><span class="step-check">○</span> Tier 2 metadata evaluation</div>
+              <div class="step" id="step-t3"><span class="step-check">○</span> Tier 3 async forum crawl</div>
+            </div>
+
+            <div id="footprints" class="sources-status-grid">
+              <div class="empty-state">
+                <p>Telemetry offline.</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- SECTION 9: AGENT WORKFLOW PIPELINE -->
+        <section class="narrative-section">
+          <div class="section-header">
+            <h3>Orchestration Pipeline</h3>
+            <p class="section-desc">Powered by seven collaborative AI agents running on LangGraph.</p>
+          </div>
+          <div class="pipeline-container">
+            <div class="pipeline-progress-header">
+              <h4 id="pipeline-title">AI Operations Progress: Idle</h4>
+            </div>
+            
+            <div class="graph-flow">
+              <div class="node" id="node-discovery" onclick="openDrawer('discovery')">
+                <div class="node-badge">01</div>
+                <div class="node-content">
+                  <div class="node-title-row">
+                    <span class="node-title">Discover</span>
+                    <span class="node-status">Waiting</span>
+                  </div>
+                  <p class="node-desc">Locates company endpoints and domains.</p>
+                  <span class="node-timer" id="timer-discovery">0.0s</span>
+                </div>
+                <div class="progress-track"><div class="progress-bar" id="progress-discovery"></div></div>
+              </div>
+
+              <div class="node" id="node-monitoring" onclick="openDrawer('monitoring')">
+                <div class="node-badge">02</div>
+                <div class="node-content">
+                  <div class="node-title-row">
+                    <span class="node-title">Monitor</span>
+                    <span class="node-status">Waiting</span>
+                  </div>
+                  <p class="node-desc">Scrapes changes and raw snapshots.</p>
+                  <span class="node-timer" id="timer-monitoring">0.0s</span>
+                </div>
+                <div class="progress-track"><div class="progress-bar" id="progress-monitoring"></div></div>
+              </div>
+
+              <div class="node" id="node-classification" onclick="openDrawer('classification')">
+                <div class="node-badge">03</div>
+                <div class="node-content">
+                  <div class="node-title-row">
+                    <span class="node-title">Analyze</span>
+                    <span class="node-status">Waiting</span>
+                  </div>
+                  <p class="node-desc">Extracts events and filters out noise.</p>
+                  <span class="node-timer" id="timer-classification">0.0s</span>
+                </div>
+                <div class="progress-track"><div class="progress-bar" id="progress-classification"></div></div>
+              </div>
+
+              <div class="node" id="node-intelligence" onclick="openDrawer('intelligence')">
+                <div class="node-badge">04</div>
+                <div class="node-content">
+                  <div class="node-title-row">
+                    <span class="node-title">Connect</span>
+                    <span class="node-status">Waiting</span>
+                  </div>
+                  <p class="node-desc">Builds chronological event chains.</p>
+                  <span class="node-timer" id="timer-intelligence">0.0s</span>
+                </div>
+                <div class="progress-track"><div class="progress-bar" id="progress-intelligence"></div></div>
+              </div>
+
+              <div class="node" id="node-hypothesis" onclick="openDrawer('hypothesis')">
+                <div class="node-badge">05</div>
+                <div class="node-content">
+                  <div class="node-title-row">
+                    <span class="node-title">Interpret</span>
+                    <span class="node-status">Waiting</span>
+                  </div>
+                  <p class="node-desc">Synthesizes vector-grounded themes.</p>
+                  <span class="node-timer" id="timer-hypothesis">0.0s</span>
+                </div>
+                <div class="progress-track"><div class="progress-bar" id="progress-hypothesis"></div></div>
+              </div>
+
+              <div class="node" id="node-recommendation" onclick="openDrawer('recommendation')">
+                <div class="node-badge">06</div>
+                <div class="node-content">
+                  <div class="node-title-row">
+                    <span class="node-title">Recommend</span>
+                    <span class="node-status">Waiting</span>
+                  </div>
+                  <p class="node-desc">Formulates action and posture recommendations.</p>
+                  <span class="node-timer" id="timer-recommendation">0.0s</span>
+                </div>
+                <div class="progress-track"><div class="progress-bar" id="progress-recommendation"></div></div>
+              </div>
+
+              <div class="node" id="node-reporting" onclick="openDrawer('reporting')">
+                <div class="node-badge">07</div>
+                <div class="node-content">
+                  <div class="node-title-row">
+                    <span class="node-title">Report</span>
+                    <span class="node-status">Waiting</span>
+                  </div>
+                  <p class="node-desc">Compiles the final strategic executive brief.</p>
+                  <span class="node-timer" id="timer-reporting">0.0s</span>
+                </div>
+                <div class="progress-track"><div class="progress-bar" id="progress-reporting"></div></div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- SECTION 10: ORCHESTRATION ACTIVITY FEED -->
+        <section class="narrative-section">
+          <div class="section-header">
+            <h3>Orchestration Activity</h3>
+            <p class="section-desc">Audit feed of real-time multi-agent cooperation steps.</p>
+          </div>
+          <div class="activity-timeline-card">
+            <div class="console-feed" id="console-feed">
+              <p class="console-line system">[System] Pipeline waiting for input...</p>
+            </div>
+          </div>
+        </section>
+
+      </main>
+
+      <footer class="dashboard-footer">
+        <p>Powered by Seven Specialized AI Agents working together to Discover, Monitor, Analyze, Connect, Interpret, Recommend, and Report.</p>
+      </footer>
+    </div>
+
+    <!-- Details Side Drawer Overlay -->
+    <div id="drawer" class="drawer">
+      <div class="drawer-header">
+        <h3 id="drawer-agent-name">Agent Details</h3>
+        <button id="drawer-close" class="drawer-close-btn" onclick="closeDrawer()">&times;</button>
+      </div>
+      <div class="drawer-body">
+        <div class="drawer-section">
+          <h4>Role & Purpose</h4>
+          <p id="drawer-purpose">-</p>
+        </div>
+        <div class="drawer-section">
+          <h4>Required Inputs</h4>
+          <p id="drawer-inputs">-</p>
+        </div>
+        <div class="drawer-section">
+          <h4>Generated Outputs</h4>
+          <p id="drawer-outputs">-</p>
+        </div>
+        <div class="drawer-section">
+          <h4>Confidence Gate</h4>
+          <p id="drawer-confidence">-</p>
+        </div>
+        <div class="drawer-section">
+          <h4>Evidence Citations</h4>
+          <p id="drawer-evidence">-</p>
+        </div>
+        <div class="drawer-section">
+          <h4>Execution Time</h4>
+          <p id="drawer-duration">0.0s</p>
+        </div>
+      </div>
+    </div>
 
     <!-- Feedback Modal Dialog -->
     <dialog id="feedback-dialog" class="glass-modal">
       <form method="dialog" id="feedback-form">
-        <h3>Add Strategic Guidance</h3>
-        <p>Your feedback comments will adjust the recommendation generator dynamically.</p>
-        <textarea id="feedback-comments" placeholder="e.g. Prioritize product actions over defensive campaigns." required></textarea>
+        <h3>Submit Strategic Guidance</h3>
+        <p>Provide guiding constraints to refine future recommendation rounds dynamically.</p>
+        <textarea id="feedback-comments" placeholder="e.g. Focus on pricing responses and deprioritize hiring alerts..." required></textarea>
         <div class="modal-actions">
           <button type="button" id="modal-cancel" class="btn btn-secondary">Cancel</button>
-          <button type="submit" class="btn id-submit btn-primary">Submit Vote</button>
+          <button type="submit" class="btn id-submit btn-primary">Submit Feedback</button>
         </div>
       </form>
     </dialog>
 
-    <script src="app.js"></script>
+    <script src="app.js?v=5"></script>
   </body>
 </html>

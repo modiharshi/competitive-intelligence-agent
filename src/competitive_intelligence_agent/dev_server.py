@@ -49,6 +49,8 @@ class DemoHandler(SimpleHTTPRequestHandler):
                 competitors = [row["name"] for row in rows]
                 self.write_json(competitors)
             except Exception as exc:
+                import traceback
+                traceback.print_exc()
                 self.write_json({"error": str(exc)}, status=HTTPStatus.INTERNAL_SERVER_ERROR)
             return
 
@@ -72,7 +74,12 @@ class DemoHandler(SimpleHTTPRequestHandler):
                         "generated_at": res.generated_at,
                         "thread_id": thread_id,
                         "status": "interrupted",
-                        "recommendations": []
+                        "recommendations": [],
+                        "executive_summary": res.executive_summary,
+                        "intelligence_pillars": res.intelligence_pillars,
+                        "strategic_risks": res.strategic_risks,
+                        "strategic_opportunities": res.strategic_opportunities,
+                        "watch_list": res.watch_list
                     })
                 except ValueError as exc:
                     self.write_json({"error": str(exc)}, status=HTTPStatus.NOT_FOUND)
@@ -85,6 +92,10 @@ class DemoHandler(SimpleHTTPRequestHandler):
                     events.append(event)
                 
                 state = graph.get_state(config)
+                
+                # Check state values and run demo pipeline to fallback load the pillar details
+                res_demo = run_demo_pipeline(competitor)
+                
                 footprint = [to_dict(f) for f in state.values.get("footprint", [])]
                 signals = [to_dict(s) for s in state.values.get("signals", [])]
                 hypotheses = [to_dict(h) for h in state.values.get("hypotheses", []) if h.status != "suppressed"]
@@ -98,9 +109,16 @@ class DemoHandler(SimpleHTTPRequestHandler):
                     "generated_at": utc_now_iso(),
                     "thread_id": thread_id,
                     "status": "interrupted" if state.next else "completed",
-                    "recommendations": []
+                    "recommendations": [],
+                    "executive_summary": res_demo.executive_summary,
+                    "intelligence_pillars": res_demo.intelligence_pillars,
+                    "strategic_risks": res_demo.strategic_risks,
+                    "strategic_opportunities": res_demo.strategic_opportunities,
+                    "watch_list": res_demo.watch_list
                 })
             except Exception as exc:
+                import traceback
+                traceback.print_exc()
                 self.write_json({"error": str(exc)}, status=HTTPStatus.INTERNAL_SERVER_ERROR)
             return
 
@@ -146,6 +164,8 @@ class DemoHandler(SimpleHTTPRequestHandler):
                     "status": "completed"
                 })
             except Exception as exc:
+                import traceback
+                traceback.print_exc()
                 self.write_json({"error": str(exc)}, status=HTTPStatus.INTERNAL_SERVER_ERROR)
             return
 
@@ -215,6 +235,8 @@ class DemoHandler(SimpleHTTPRequestHandler):
                 conn.close()
                 self.write_json({"status": "success"})
             except Exception as exc:
+                import traceback
+                traceback.print_exc()
                 self.write_json({"error": str(exc)}, status=HTTPStatus.INTERNAL_SERVER_ERROR)
             return
 
@@ -230,10 +252,21 @@ class DemoHandler(SimpleHTTPRequestHandler):
 
 
 def main() -> int:
-    server = ThreadingHTTPServer(("127.0.0.1", 8000), DemoHandler)
-    print("Serving Competitive Intelligence Agent at http://127.0.0.1:8000")
-    server.serve_forever()
-    return 0
+    ports = [8000, 8080, 8085]
+    server = None
+    last_err = None
+    for port in ports:
+        try:
+            server = ThreadingHTTPServer(("localhost", port), DemoHandler)
+            print(f"Serving Competitive Intelligence Agent at http://localhost:{port}")
+            server.serve_forever()
+            return 0
+        except Exception as e:
+            print(f"[Warning] Failed to bind to port {port}: {e}")
+            last_err = e
+    if last_err:
+        raise last_err
+    return 1
 
 
 if __name__ == "__main__":

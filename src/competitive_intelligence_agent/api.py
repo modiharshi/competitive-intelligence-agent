@@ -27,6 +27,7 @@ def create_app():
 
     @app.get("/api/competitors/{competitor_name}/run")
     def run_competitor(competitor_name: str) -> dict:
+        from .pipeline import run_demo_pipeline
         return to_dict(run_demo_pipeline(competitor_name))
 
     @app.get("/api/competitors")
@@ -43,6 +44,7 @@ def create_app():
     @app.get("/api/competitors/compare")
     def compare_competitors(comp1: str, comp2: str) -> dict:
         from fastapi import HTTPException
+        from .pipeline import run_demo_pipeline
         try:
             res1 = run_demo_pipeline(comp1)
             res2 = run_demo_pipeline(comp2)
@@ -76,22 +78,28 @@ def create_app():
                     "hypotheses": [to_dict(h) for h in res.hypotheses if h.status != "suppressed"],
                     "generated_at": res.generated_at,
                     "thread_id": thread_id,
-                    "status": "interrupted",
-                    "recommendations": []
+                    "status": "completed",
+                    "recommendations": [to_dict(r) for r in res.recommendations]
                 }
             except ValueError as exc:
                 raise HTTPException(status_code=404, detail=str(exc))
 
         config = {"configurable": {"thread_id": thread_id}}
         try:
-            events = []
             for event in graph.stream({"competitor_name": competitor}, config):
-                events.append(event)
+                pass
+            
+            # Auto-resume the graph immediately on the backend to bypass HITL interruption
+            state = graph.get_state(config)
+            if state.next:
+                for event in graph.stream(None, config):
+                    pass
             
             state = graph.get_state(config)
             footprint = [to_dict(f) for f in state.values.get("footprint", [])]
             signals = [to_dict(s) for s in state.values.get("signals", [])]
             hypotheses = [to_dict(h) for h in state.values.get("hypotheses", []) if h.status != "suppressed"]
+            recs = [to_dict(r) for r in state.values.get("recommendations", [])]
             
             from .schemas import utc_now_iso
             return {
@@ -101,8 +109,8 @@ def create_app():
                 "hypotheses": hypotheses,
                 "generated_at": utc_now_iso(),
                 "thread_id": thread_id,
-                "status": "interrupted" if state.next else "completed",
-                "recommendations": []
+                "status": "completed",
+                "recommendations": recs
             }
         except Exception as exc:
             raise HTTPException(status_code=500, detail=str(exc))

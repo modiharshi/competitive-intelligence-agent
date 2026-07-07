@@ -49,29 +49,50 @@ class RecommendationNode:
             raise ValueError("cannot recommend actions for suppressed hypotheses")
         
         few_shots = self.get_few_shot_examples()
-        prompt = self.compile_prompt(hypothesis, few_shots)
         
+        theme = hypothesis.theme
         priority = "High" if hypothesis.confidence_score >= 0.85 else "Medium"
-        recommended_action = "Prepare a focused response brief for product, sales, and marketing leadership."
-        reasoning = (
-            "The hypothesis clears the 70% confidence gate and is backed by multiple public citations, "
-            "so teams should align messaging and roadmap options before the move becomes explicit."
-        )
         
+        # Build contextual executive recommendations
+        if "Enterprise Scaling" in theme:
+            category = "Strategic Initiatives"
+            recommended_action = "Initiate proactive enterprise compliance audit and speed up enterprise sales enablement."
+            reasoning = "Correlated infrastructure hiring spikes and secure Kubernetes documentation changes indicate an imminent play into regulated SaaS sectors."
+            posture = "Offensive"
+            outcome = "Secured market share among compliance-sensitive institutional customers."
+        elif "Pricing Strategy" in theme:
+            category = "Product Response"
+            recommended_action = "Draft a customer value survey and evaluate value-add bundle options for threatened tiers."
+            reasoning = "Pricing modifications combined with negative user feedback signals high churn risk. Defensive bundles mitigate immediate loss."
+            posture = "Defensive"
+            outcome = "Reduced customer churn on price-sensitive accounts."
+        elif "New Product Launch" in theme:
+            category = "Marketing Response"
+            recommended_action = "Launch target search campaign keyword conquesting and prepare comparative collateral for sales."
+            reasoning = "Pre-launch documentation additions coupled with announcement frequency spikes warrant early positioning updates."
+            posture = "Defensive"
+            outcome = "Neutralized competitor's first-mover launch marketing spikes."
+        else:
+            category = "Strategic Initiatives"
+            recommended_action = "Increase crawler telemetry frequency for core endpoints and monitor executive announcements."
+            reasoning = "General strategy movement detected; gathering further context is recommended before committing capital."
+            posture = "Opportunistic"
+            outcome = "Clearer competitive intelligence baseline."
+
         if few_shots:
             comments_str = "; ".join([f.comments for f in few_shots if f.comments])
             if comments_str:
-                reasoning += f" Adjusted with user feedback: {comments_str}"
+                reasoning += f" [Feedback Alignment: {comments_str}]"
         
         return ActionRecommendation(
             id=f"rec-{hypothesis.id.removeprefix('hyp-')}",
             hypothesis_id=hypothesis.id,
-            category="Product Response",
+            category=category,
             recommended_action=recommended_action,
             reasoning=reasoning,
             priority=priority,
             effort="Medium",
-            strategic_posture="Defensive",
-            expected_outcome="A faster, coordinated response to the competitor shift with evidence-linked talking points.",
+            strategic_posture=posture,
+            expected_outcome=outcome,
             supporting_evidence=hypothesis.sources,
         )
